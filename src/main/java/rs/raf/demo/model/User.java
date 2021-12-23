@@ -30,6 +30,9 @@ public class User {
     @ColumnDefault("0")
     private Integer loginCount = 0;
 
+    @Version
+    private Integer version = 0;
+
     @Column(nullable = false)
     @ColumnDefault("0")
     private Integer balance = 0;
@@ -38,7 +41,4 @@ public class User {
     @ColumnDefault("0")
     private Integer salary = 0;
 
-//    @Column
-//    @Version
-//    private Integer version;
 }

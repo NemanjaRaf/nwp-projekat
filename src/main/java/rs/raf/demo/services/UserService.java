@@ -6,6 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,6 +14,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import rs.raf.demo.model.User;
@@ -61,13 +63,14 @@ public class UserService implements UserDetailsService {
     }
 
     public void loggedIn(String username) {
-        User user = this.userRepository.findByUsername(username);
-        Integer loginCount = user.getLoginCount();
+//        User user = this.userRepository.findByUsername(username);
+//        Integer loginCount = user.getLoginCount();
         try {
             Thread.sleep(10000);
 
-            user.setLoginCount(loginCount + 1);
-            this.userRepository.save(user);
+            userRepository.increaseLoginCount( 1,username);
+//            user.setLoginCount(loginCount + 1);
+//            this.userRepository.save(user);
 
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -87,28 +90,28 @@ public class UserService implements UserDetailsService {
 //    @Scheduled(fixedRate = 3000)
 //    public void scheduleFixedRateTaskAsync() throws InterruptedException {
 //        System.out.println(
-//                "Fixed rate task async - " + System.currentTimeMillis() / 1000);
+//                Thread.currentThread().getId() + " Fixed rate task async - " + System.currentTimeMillis() / 1000);
 //        Thread.sleep(5000);
 //        System.out.println(
-//                "Fixed rate task async - finished " + System.currentTimeMillis() / 1000);
+//                Thread.currentThread().getId() + " Fixed rate task async - finished " + System.currentTimeMillis() / 1000);
 //    }
 
-    @Scheduled(cron = "0 * * * * *", zone = "Europe/Belgrade")
-    public void increaseUserBalance() {
-        System.out.println("Increasing balance...");
+//    @Scheduled(cron = "0 * * * * *", zone = "Europe/Belgrade")
+//    public void increaseUserBalance() {
+//        System.out.println("Increasing balance...");
 //        this.userRepository.increaseBalance(1);
-        List<User> users = this.userRepository.findAll();
-        for (User user : users) {
-            user.setBalance(user.getBalance() + 1);
-        }
-    }
+////        List<User> users = this.userRepository.findAll();
+////        for (User user : users) {
+////            user.setBalance(user.getBalance() + 1);
+////        }
+//    }
 
     public User hire(String username, Integer salary) {
         User user = this.userRepository.findByUsername(username);
         user.setSalary(salary);
         this.userRepository.save(user);
 
-        CronTrigger cronTrigger = new CronTrigger("0 * * * * *"); // "0 0 0 */25 * *"
+        CronTrigger cronTrigger = new CronTrigger("0 0 0 25 * *"); // "0 0 0 */25 * *"
         this.taskScheduler.schedule(() -> {
             System.out.println("Getting salary...");
             this.userRepository.increaseBalance(salary);

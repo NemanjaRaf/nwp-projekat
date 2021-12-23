@@ -9,7 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
 @EnableScheduling
-@EnableAsync
+@EnableAsync(proxyTargetClass = true)
 public class AppConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
