@@ -14,16 +14,4 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     public User findByUsername(String username);
-
-    @Modifying
-    @Query("update User u set u.loginCount = u.loginCount + :count where u.username = :username")
-    @Transactional
-    public void increaseLoginCount(@Param("count") Integer count, @Param("username") String username);
-
-
-
-    @Modifying
-    @Query("update User u set u.balance = u.balance + :amount")
-    @Transactional
-    public void increaseBalance(@Param("amount") Integer amount);
 }

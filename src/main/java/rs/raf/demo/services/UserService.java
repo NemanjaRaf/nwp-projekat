@@ -29,14 +29,12 @@ public class UserService implements UserDetailsService {
     private PasswordEncoder passwordEncoder;
 
     private UserRepository userRepository;
-    private TaskScheduler taskScheduler;
 
     @Autowired
     public UserService(PasswordEncoder passwordEncoder, UserRepository userRepository, TaskScheduler taskScheduler) {
         this.passwordEncoder = passwordEncoder;
 
         this.userRepository = userRepository;
-        this.taskScheduler = taskScheduler;
     }
 
     @Override
@@ -51,7 +49,9 @@ public class UserService implements UserDetailsService {
 
     public User create(User user) {
         user.setPassword(this.passwordEncoder.encode(user.getPassword()));
-        return this.userRepository.save(user);
+        user = this.userRepository.save(user);
+        System.out.println("Service: User created");
+        return user;
     }
 
     public Page<User> paginate(Integer page, Integer size) {
@@ -60,63 +60,5 @@ public class UserService implements UserDetailsService {
 
     public User findByUsername(String username) {
         return this.userRepository.findByUsername(username);
-    }
-
-    public void loggedIn(String username) {
-//        User user = this.userRepository.findByUsername(username);
-//        Integer loginCount = user.getLoginCount();
-        try {
-            Thread.sleep(10000);
-
-            userRepository.increaseLoginCount( 1,username);
-//            user.setLoginCount(loginCount + 1);
-//            this.userRepository.save(user);
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ObjectOptimisticLockingFailureException exception) {
-            this.loggedIn(username);
-        }
-    }
-
-//    @Scheduled(fixedDelay = 1000)
-//    public void scheduleFixedDelayTask() throws InterruptedException {
-//        System.out.println(
-//                "Fixed delay task - " + System.currentTimeMillis() / 1000);
-//        Thread.sleep(2000);
-//    }
-
-//    @Async
-//    @Scheduled(fixedRate = 3000)
-//    public void scheduleFixedRateTaskAsync() throws InterruptedException {
-//        System.out.println(
-//                Thread.currentThread().getId() + " Fixed rate task async - " + System.currentTimeMillis() / 1000);
-//        Thread.sleep(5000);
-//        System.out.println(
-//                Thread.currentThread().getId() + " Fixed rate task async - finished " + System.currentTimeMillis() / 1000);
-//    }
-
-//    @Scheduled(cron = "0 * * * * *", zone = "Europe/Belgrade")
-//    public void increaseUserBalance() {
-//        System.out.println("Increasing balance...");
-//        this.userRepository.increaseBalance(1);
-////        List<User> users = this.userRepository.findAll();
-////        for (User user : users) {
-////            user.setBalance(user.getBalance() + 1);
-////        }
-//    }
-
-    public User hire(String username, Integer salary) {
-        User user = this.userRepository.findByUsername(username);
-        user.setSalary(salary);
-        this.userRepository.save(user);
-
-        CronTrigger cronTrigger = new CronTrigger("0 0 0 25 * *"); // "0 0 0 */25 * *"
-        this.taskScheduler.schedule(() -> {
-            System.out.println("Getting salary...");
-            this.userRepository.increaseBalance(salary);
-        }, cronTrigger);
-
-        return user;
     }
 }

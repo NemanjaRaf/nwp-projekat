@@ -2,9 +2,11 @@ package rs.raf.demo.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import rs.raf.demo.listeners.UserListener;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -15,7 +17,7 @@ import javax.validation.constraints.NotBlank;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long userId;
+    private Long id;
 
     @Column
     @NotBlank(message = "Username is mandatory")
@@ -26,19 +28,12 @@ public class User {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    @Column(nullable = false)
-    @ColumnDefault("0")
-    private Integer loginCount = 0;
+    @Column
+    private String firstName;
 
-    @Version
-    private Integer version = 0;
+    @Column
+    private String lastName;
 
-    @Column(nullable = false)
-    @ColumnDefault("0")
-    private Integer balance = 0;
-
-    @Column(nullable = false)
-    @ColumnDefault("0")
-    private Integer salary = 0;
-
+    @Transient
+    private String fullName;
 }

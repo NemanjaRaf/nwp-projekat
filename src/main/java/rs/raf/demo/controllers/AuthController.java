@@ -34,7 +34,6 @@ public class AuthController {
             e.printStackTrace();
             return ResponseEntity.status(401).build();
         }
-        this.userService.loggedIn(loginRequest.getUsername());
 
         return ResponseEntity.ok(new LoginResponse(jwtUtil.generateToken(loginRequest.getUsername())));
     }
