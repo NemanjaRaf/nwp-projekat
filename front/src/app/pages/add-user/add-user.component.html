@@ -1,0 +1,29 @@
+<div class="add-user-container">
+    <h2>Add User</h2>
+    <form (submit)="addUser()">
+        <label>First Name</label>
+        <input [(ngModel)]="user.firstName" name="firstName" required />
+
+        <label>Last Name</label>
+        <input [(ngModel)]="user.lastName" name="lastName" required />
+
+        <label>Email</label>
+        <input [(ngModel)]="user.email" type="email" name="email" required />
+
+        <label>Username</label>
+        <input [(ngModel)]="user.username" name="username" required />
+
+        <label>Password</label>
+        <input [(ngModel)]="user.password" type="password" name="password" required />
+
+        <label>Permissions</label>
+        <select multiple [(ngModel)]="user.permissions" name="permissions">
+            <option value="can_create_users">Can Create Users</option>
+            <option value="can_read_users">Can Read Users</option>
+            <option value="can_update_users">Can Update Users</option>
+            <option value="can_delete_users">Can Delete Users</option>
+        </select>
+
+        <button type="submit">Save</button>
+    </form>
+</div>

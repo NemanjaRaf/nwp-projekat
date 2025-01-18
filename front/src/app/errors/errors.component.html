@@ -1,0 +1,34 @@
+<div class="filters">
+    <h2>Lista grešaka</h2>
+    <div *ngIf="isAdmin">
+        <label for="userId">Korisnik:</label>
+        <select id="userId" [(ngModel)]="filters.userId">
+            <option value="">Svi</option>
+            <option *ngFor="let user of users" [value]="user.id">{{ user.username }}</option>
+        </select>
+    </div>
+    <button (click)="applyFilters()" class="btn btn-primary">Primeni filtere</button>
+</div>
+
+<table class="errors-table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Vreme Greške</th>
+            <th>Operacija</th>
+            <th>Poruka</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let error of errors">
+            <td>{{ error.id }}</td>
+            <td>{{ error.errorTime }}</td>
+            <td>{{ error.operation }}</td>
+            <td>{{ error.message }}</td>
+        </tr>
+    </tbody>
+</table>
+
+<div *ngIf="errors.length === 0">
+    <p>Trenutno nema grešaka.</p>
+</div>

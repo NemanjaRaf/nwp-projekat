@@ -9,6 +9,7 @@ import javax.persistence.PrePersist;
 public class UserListener {
     @PostLoad
     private void setFullName(User user) {
+        System.out.println("setFullName: " + user.getUsername());
         user.setFullName(user.getFirstName() + " " + user.getLastName());
     }
 

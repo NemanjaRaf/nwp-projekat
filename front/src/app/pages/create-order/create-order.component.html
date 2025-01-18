@@ -1,0 +1,35 @@
+<div class="create-order-container">
+  <h2>Kreiraj Porudžbinu</h2>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="successMessage" class="success-message">
+    {{ successMessage }}
+  </div>
+
+  <div *ngIf="menu.length > 0" class="menu-list">
+    <h3>Meni</h3>
+    <ul>
+      <li *ngFor="let dish of menu" (click)="toggleDishSelection(dish)">
+        <span [class.selected]="isDishSelected(dish)">
+          {{ dish.name }} - {{ dish.weightInGrams }}g - {{ dish.price }} RSD
+        </span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="schedule-order">
+    <label for="scheduledTime">Vreme zakazivanja:</label>
+    <input id="scheduledTime" type="datetime-local" [(ngModel)]="scheduledTime" />
+  </div>
+
+  <button (click)="createOrder()" [disabled]="menu.length === 0">
+    Kreiraj Porudžbinu
+  </button>
+
+  <button (click)="scheduleOrder()" [disabled]="menu.length === 0 || !scheduledTime">
+    Zakaži Porudžbinu
+  </button>
+</div>

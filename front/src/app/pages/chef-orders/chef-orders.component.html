@@ -1,0 +1,45 @@
+<div class="chef-orders-container">
+  <h2>Porudžbine za kuvara</h2>
+
+  <div *ngIf="loading" class="loading">Učitavanje porudžbina...</div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <table *ngIf="!loading && orders.length > 0; else noOrders" class="orders-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Status</th>
+        <th>Datum kreiranja</th>
+        <th>Zakazano za</th>
+        <th>Jela</th>
+        <th>Akcije</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let order of orders">
+        <td>{{ order.id }}</td>
+        <td>{{ order.status }}</td>
+        <td>{{ order.createdAt | date: 'dd.MM.yyyy HH:mm:ss' }}</td>
+        <td>
+          {{ order.scheduledTime ? (order.scheduledTime | date: 'dd.MM.yyyy HH:mm:ss') : 'Odmah' }}
+        </td>
+        <td>{{ order.formattedDishes }}</td>
+        <td>
+          <button (click)="acceptOrder(order.id)" [disabled]="!canAcceptOrder(order)" class="btn btn-success">
+            Prihvati
+          </button>
+          <button (click)="rejectOrder(order.id)" [disabled]="order.status !== 'ORDERED'" class="btn btn-danger">
+            Odbij
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <ng-template #noOrders>
+    <p>Trenutno nema dostupnih porudžbina.</p>
+  </ng-template>
+</div>

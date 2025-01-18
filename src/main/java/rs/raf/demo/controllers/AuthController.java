@@ -6,6 +6,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import rs.raf.demo.model.User;
 import rs.raf.demo.requests.LoginRequest;
 import rs.raf.demo.responses.LoginResponse;
 import rs.raf.demo.services.UserService;
@@ -29,13 +30,14 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest){
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
-        } catch (Exception   e){
-            e.printStackTrace();
-            return ResponseEntity.status(401).build();
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+        } catch (Exception   e) {
+            return ResponseEntity.status(401).body(new LoginResponse("", e.getMessage()));
         }
 
-        return ResponseEntity.ok(new LoginResponse(jwtUtil.generateToken(loginRequest.getUsername())));
+        User user = userService.findByEmail(loginRequest.getEmail());
+
+        return ResponseEntity.ok(new LoginResponse( jwtUtil.generateToken(loginRequest.getEmail(), user.getRole()), user.getPermissions() ));
     }
 
 }

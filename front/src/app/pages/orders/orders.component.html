@@ -1,0 +1,66 @@
+<div class="orders-container">
+  <h2>Porudžbine</h2>
+
+  <div class="filters">
+    <label for="status">Status:</label>
+    <select id="status" [(ngModel)]="filters.status">
+      <option value="">Svi</option>
+      <option *ngFor="let status of orderStatuses" [value]="status">{{ status }}</option>
+    </select>
+  
+    <label for="dateFrom">Od:</label>
+    <input id="dateFrom" type="date" [(ngModel)]="filters.dateFrom" />
+  
+    <label for="dateTo">Do:</label>
+    <input id="dateTo" type="date" [(ngModel)]="filters.dateTo" />
+  
+    <div *ngIf="isAdmin">
+      <label for="userId">Korisnik:</label>
+      <select id="userId" [(ngModel)]="filters.userId">
+        <option value="">Svi</option>
+        <option *ngFor="let user of users" [value]="user.id">{{ user.username }}</option>
+      </select>
+    </div>
+  
+    <button (click)="applyFilters()" class="btn btn-primary">Primeni filtere</button>
+  </div>
+
+  <div *ngIf="loading" class="loading">Učitavanje porudžbina...</div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <table *ngIf="!loading && orders.length > 0; else noOrders" class="orders-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Status</th>
+        <th>Kreirano od</th>
+        <th>Aktivno</th>
+        <th>Datum kreiranja</th>
+        <th>Jela</th>
+        <th>Akcije</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let order of orders">
+        <td>{{ order.id }}</td>
+        <td>{{ order.status }}</td>
+        <td>{{ order.createdBy.username }}</td>
+        <td>{{ order.active ? 'Da' : 'Ne' }}</td>
+        <td>{{ order.createdAt | date: 'dd.MM.yyyy HH:mm:ss' }}</td>
+        <td>{{ order.dishesList }}</td>
+        <td>
+          <button *ngIf="order.status !== 'DELIVERED'" (click)="trackOrder(order.id)" class="btn btn-info">
+            Prati porudžbinu
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <ng-template #noOrders>
+    <p>Trenutno nema dostupnih porudžbina.</p>
+  </ng-template>
+</div>

@@ -1,0 +1,24 @@
+<div class="users-container">
+  <h2>Users</h2>
+  <button [routerLink]="['/add-user']">Add User</button>
+  <button (click)="logout()">Logout</button>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let user of users">
+        <td>{{ user.firstName }} {{ user.lastName }}</td>
+        <td>{{ user.email }}</td>
+        <td>
+          <button [routerLink]="['/edit-user', user.id]">Edit</button>
+          <button (click)="deleteUser(user.id)">Delete</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>

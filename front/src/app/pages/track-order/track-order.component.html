@@ -1,0 +1,16 @@
+<div class="track-order-container">
+  <h2>Praćenje Porudžbine</h2>
+
+  <div *ngIf="loading" class="loading">Učitavanje...</div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="order">
+    <p><strong>ID:</strong> {{ order.id }}</p>
+    <p><strong>Status:</strong> {{ order.status }}</p>
+    <p><strong>Kreirano:</strong> {{ order.createdAt | date: 'dd.MM.yyyy HH:mm:ss' }}</p>
+    <p><strong>Jela:</strong> {{ order.formattedDishes }}</p>
+  </div>
+</div>
