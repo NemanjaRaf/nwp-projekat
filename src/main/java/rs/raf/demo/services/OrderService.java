@@ -13,6 +13,7 @@ import rs.raf.demo.repositories.ErrorMessageRepository;
 import rs.raf.demo.repositories.OrderRepository;
 import rs.raf.demo.utils.JwtUtil;
 
+import javax.persistence.OptimisticLockException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
@@ -94,22 +95,25 @@ public class OrderService {
     }
 
     public void processScheduledOrder(Order order) {
-        long concurrentOrders = orderRepository.countByStatusIn(Arrays.asList(OrderStatus.PREPARING, OrderStatus.IN_DELIVERY, OrderStatus.ORDERED));
+        handleOptimisticLocking(() -> {
+            long concurrentOrders = orderRepository.countByStatusIn(Arrays.asList(OrderStatus.PREPARING, OrderStatus.IN_DELIVERY, OrderStatus.ORDERED));
 
-        if (concurrentOrders >= maxConcurrentOrders) {
-            ErrorMessage errorMessage = new ErrorMessage();
-            errorMessage.setErrorTime(LocalDateTime.now());
-            errorMessage.setOrder(order);
-            errorMessage.setOperation("SCHEDULE");
-            errorMessage.setMessage("Prekoračen maksimalni broj istovremenih porudžbina.");
+            if (concurrentOrders >= maxConcurrentOrders) {
+                ErrorMessage errorMessage = new ErrorMessage();
+                errorMessage.setErrorTime(LocalDateTime.now());
+                errorMessage.setOrder(order);
+                errorMessage.setOperation("SCHEDULE");
+                errorMessage.setMessage("Prekoračen maksimalni broj istovremenih porudžbina.");
 
-            order.setStatus(OrderStatus.CANCELED);
-            orderRepository.save(order);
-            errorMessageRepository.save(errorMessage);
-        } else {
-            order.setStatus(OrderStatus.ORDERED);
-            orderRepository.save(order);
-        }
+                order.setStatus(OrderStatus.CANCELED);
+                orderRepository.save(order);
+                errorMessageRepository.save(errorMessage);
+            } else {
+                order.setStatus(OrderStatus.ORDERED);
+                orderRepository.save(order);
+            }
+            return null;
+        }, 3);
     }
 
     public List<Order> getScheduledOrders() {
@@ -141,35 +145,45 @@ public class OrderService {
     }
 
     public void cancelOrder(Long id) {
-        Order order = orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
-        if (order.getStatus() != OrderStatus.ORDERED) {
-            throw new IllegalStateException("Only orders in ORDERED status can be canceled");
-        }
-        order.setStatus(OrderStatus.CANCELED);
-        order.setActive(false);
-        orderRepository.save(order);
+        handleOptimisticLocking(() -> {
+            Order order = orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
+
+            if (order.getStatus() != OrderStatus.ORDERED) {
+                throw new IllegalStateException("Only orders in ORDERED status can be canceled");
+            }
+
+            order.setStatus(OrderStatus.CANCELED);
+            order.setActive(false);
+            orderRepository.save(order);
+
+            return null;
+        }, 3);
     }
 
     public Order acceptOrder(Long id) {
-        Order order = orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
-        if (order.getStatus() != OrderStatus.ORDERED) {
-            throw new IllegalStateException("Only orders in ORDERED status can be accepted");
-        }
-        order.setStatus(OrderStatus.PREPARING);
-        orderRepository.save(order);
+        return handleOptimisticLocking(() -> {
+            Order order = orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Porudžbina nije pronađena"));
 
-        return order;
+            if (order.getStatus() != OrderStatus.ORDERED) {
+                throw new IllegalStateException("Samo porudžbine u statusu ORDERED mogu biti prihvaćene.");
+            }
+
+            order.setStatus(OrderStatus.PREPARING);
+            return orderRepository.save(order);
+        }, 3);
     }
 
     public Order rejectOrder(Long id) {
-        Order order = orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
-        if (order.getStatus() != OrderStatus.ORDERED) {
-            throw new IllegalStateException("Only orders in ORDERED status can be rejected");
-        }
-        order.setStatus(OrderStatus.CANCELED);
-        orderRepository.save(order);
+        return handleOptimisticLocking(() -> {
+            Order order = orderRepository.findById(id).orElseThrow(() -> new RuntimeException("Order not found"));
+            if (order.getStatus() != OrderStatus.ORDERED) {
+                throw new IllegalStateException("Only orders in ORDERED status can be rejected");
+            }
+            order.setStatus(OrderStatus.CANCELED);
+            orderRepository.save(order);
 
-        return order;
+            return order;
+        }, 3);
     }
 
     public Order trackOrder(Long id) {
@@ -180,25 +194,47 @@ public class OrderService {
     public void updateOrderStatuses() {
         List<Order> orders = orderRepository.findAll();
         for (Order order : orders) {
-            if (order.getScheduledTime() != null && order.getScheduledTime().isBefore(LocalDateTime.now())) {
-                order.setScheduledTime(null);
-            }
+            handleOptimisticLocking(() -> {
+                if (order.getScheduledTime() != null && order.getScheduledTime().isBefore(LocalDateTime.now())) {
+                    order.setScheduledTime(null);
+                }
 
-            switch (order.getStatus()) {
-//                case ORDERED:
-//                    order.setStatus(OrderStatus.PREPARING);
-//                    break;
-                case PREPARING:
-                    order.setStatus(OrderStatus.IN_DELIVERY);
-                    break;
-                case IN_DELIVERY:
-                    order.setStatus(OrderStatus.DELIVERED);
-                    break;
-                default:
-                    break;
-            }
-            orderRepository.save(order);
+                switch (order.getStatus()) {
+                    case PREPARING:
+                        order.setStatus(OrderStatus.IN_DELIVERY);
+                        break;
+                    case IN_DELIVERY:
+                        order.setStatus(OrderStatus.DELIVERED);
+                        break;
+                    default:
+                        break;
+                }
+
+                return orderRepository.save(order);
+            }, 3);
         }
+    }
+
+    @FunctionalInterface
+    public interface OptimisticOperation<T> {
+        T execute();
+    }
+
+    private <T> T handleOptimisticLocking(OptimisticOperation<T> operation, int maxRetries) {
+        int attempt = 0;
+
+        while (attempt < maxRetries) {
+            try {
+                return operation.execute();
+            } catch (OptimisticLockException ex) {
+                attempt++;
+                if (attempt == maxRetries) {
+                    throw new IllegalStateException("Nije uspelo rešavanje kolizije nakon maksimalnog broja pokušaja.");
+                }
+            }
+        }
+
+        throw new IllegalStateException("Neočekivana greška tokom rešavanja kolizije.");
     }
 }
 

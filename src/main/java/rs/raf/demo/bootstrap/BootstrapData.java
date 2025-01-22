@@ -81,6 +81,7 @@ public class BootstrapData implements CommandLineRunner {
 
         User user2 = new User();
         user2.setUsername("user2");
+        user2.setRole(UserTypes.USER);
         user2.setPassword(this.passwordEncoder.encode("user2"));
         user2.setFirstName("Dragan");
         user2.setLastName("Torbica");

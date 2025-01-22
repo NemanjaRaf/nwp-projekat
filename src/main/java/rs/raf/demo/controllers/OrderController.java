@@ -59,7 +59,6 @@ public class OrderController {
     ) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userService.findByEmail(username);
-        System.out.println("!!!!!!!!!!!!! ROLE: " + user.getRole());
         return orderService.findAllForCurrentUser(token.substring(7), status, dateFrom, dateTo, userId, user.getRole() == UserTypes.ADMIN);
     }
 

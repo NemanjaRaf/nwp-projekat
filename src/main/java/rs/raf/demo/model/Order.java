@@ -41,4 +41,8 @@ public class Order {
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<ErrorMessage> errorMessages;
+
+    @Version
+    @Column(nullable = false)
+    private Integer version;
 }

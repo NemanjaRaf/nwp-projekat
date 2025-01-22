@@ -12,7 +12,6 @@ import java.util.Optional;
 @Repository
 public interface DishRepository extends JpaRepository<Dish, Long> {
     Optional<Dish> findById(Long id);
-    // get all
     List<Dish> findAll();
     @Query("SELECT d FROM Dish d WHERE d.id IN :ids")
     List<Dish> findDishesByIds(@Param("ids") List<Long> ids);
